@@ -94,9 +94,9 @@ beim Schlüssel der EXTENSION, nicht bei dem des Panels. pxt schlägt den simx
 Extension (`iotsim.panelKey()` in `pxt-calliope-iot`):
 
 ```json
-"amerlander/pxt-calliope-iot": {
+"calliope-edu/pxt-calliope-iot": {
     "simx": {
-        "repo": "amerlander/pxt-iot-sim",
+        "repo": "calliope-edu/pxt-iot-sim",
         "sha": "<commit-sha auf gh-pages>",
         "devUrl": "http://localhost:3400",
         "aspectRatio": 0.78
@@ -122,7 +122,7 @@ selbst auf localhost liegt). Für den Produktivbetrieb zählt der `sha`.
 
 Das gehostete MakeCode (makecode.calliope.cc) lädt ein Panel **nie** von einer
 fremden Adresse. Außerhalb von localhost mit `simxdev` berechnet pxt die URL
-selbst: `<sim-origin>/simx/amerlander/pxt-calliope-iot/-/index.html`. Den
+selbst: `<sim-origin>/simx/calliope-edu/pxt-calliope-iot/-/index.html`. Den
 Inhalt dahinter holt das MakeCode-Backend aus dem `gh-pages`-Zweig von `repo`,
 und zwar genau den Commit aus `sha`. Eine eigene GitHub Page oder ein Hosting im
 Campus-Stack nimmt es nicht, auch kein Redirect dorthin: Der Simulator postet
@@ -139,7 +139,7 @@ Also:
    eintragen.
 3. Das Target neu ausrollen. Erst danach sieht makecode.calliope.cc das Panel.
 
-Nebenbei liegt derselbe Stand unter https://amerlander.github.io/pxt-iot-sim/:
+Nebenbei liegt derselbe Stand unter https://calliope-edu.github.io/pxt-iot-sim/:
 zum Anschauen, und als `devUrl`, wenn man lokal ohne `npm run dev` testen will.
 
 ## Entwickeln

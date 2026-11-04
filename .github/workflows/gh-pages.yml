@@ -4,8 +4,8 @@
 # localhost+simxdev it serves the panel from its own sim origin
 # (<sim-origin>/simx/<key>/-/index.html), filled from the gh-pages branch at
 # the commit pinned as `sha` in pxt-calliope/targetconfig.json
-# (approvedRepoLib["amerlander/pxt-calliope-iot"].simx, with
-# "repo": "amerlander/pxt-iot-sim"). pxt-jacdac works the same way.
+# (approvedRepoLib["calliope-edu/pxt-calliope-iot"].simx, with
+# "repo": "calliope-edu/pxt-iot-sim"). pxt-jacdac works the same way.
 #
 # Commits go on top of the existing branch (no orphan force-push), so every
 # sha a targetconfig ever pinned stays reachable.
