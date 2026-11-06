@@ -115,30 +115,18 @@ body {
 
 /* ── Kopf ─────────────────────────────────────────────────────────────── */
 
+/* Only there when the panel is cut off from the dashboard. No name above the
+   readings: the panel knows only the program's reference, never the board's
+   name, and an ID there says nothing a child can use. */
 header {
   flex: none;
-  padding: 0.625rem 0.75rem 0.5rem;
+  padding: 0.625rem 0.75rem 0;
 }
 
-header h1 {
-  margin: 0;
-  /* Capped hard. This is a dashboard slug, and a slug can be twelve random
-     letters — at heading size it took three lines and pushed the data off
-     screen. It is a label, so it is sized like one. Not in capitals, though
-     campus sets its labels that way: the slug is a name a child may type into
-     the dashboard block, and "DEMO-KLASSE" is not the name they would type. */
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  color: var(--ink-soft);
-  overflow-wrap: anywhere;
-}
-
-/* Cut off from the dashboard with values on screen: one line under the name,
-   in the name's own voice. No red, no icon — the faded readings below already
-   say something is off; this only says what and since when. */
+/* One line, in a label's voice. No red, no icon — the faded readings below
+   already say something is off; this only says what and since when. */
 header .offline {
-  margin: 0.125rem 0 0;
+  margin: 0;
   font-size: 0.7rem;
   color: var(--ink-soft);
 }
@@ -150,7 +138,7 @@ header .offline {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: 0.125rem 0 0.75rem;
+  padding: 0.5rem 0 0.75rem;
   /* The browser's own scrollbar takes 15 of the 300 px; a thin one in the
      panel's grey takes a third of that. */
   scrollbar-width: thin;

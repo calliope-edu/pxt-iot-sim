@@ -208,7 +208,7 @@ function render(): void {
         <p>${escape(advice(failure))}</p>
         <p class="retry">Das Feld versucht es weiter.</p>
       </section>`
-			: `<section class="empty"><h1>Verbinde…</h1><p>${escape(refLabel(announcement.ref))}</p></section>`;
+			: `<section class="empty"><h1>Verbinde…</h1></section>`;
 		return;
 	}
 
@@ -231,18 +231,20 @@ function render(): void {
 		.map(([feed, values]) => feedBlock(feed, values))
 		.join('');
 
-	// Cut off, the values stay where they are, faded, and the header says since
-	// when — the advice sits in the tooltip, because the panel has room for one
-	// line here and the readings are still what the child is looking at.
+	// No heading. All the panel knows of the board is the reference out of the
+	// program — a slug or a token, never the name the board carries in campus —
+	// and a line of ID above the readings says nothing a child can use. The
+	// header only appears when cut off, to say since when; the advice sits in the
+	// tooltip, because the panel has room for one line here and the readings are
+	// still what the child is looking at.
 	const stale = cutOff();
-	const note = stale
-		? `<p class="offline" title="${escape(advice(failure))}">Keine Verbindung · Stand ${clock(answeredAt)}</p>`
-		: '';
-	app.innerHTML = `
+	const header = stale
+		? `
     <header>
-      <h1 title="${escape(announcement.ref)}">${escape(refLabel(announcement.ref))}</h1>
-      ${note}
-    </header>
+      <p class="offline" title="${escape(advice(failure))}">Keine Verbindung · Stand ${clock(answeredAt)}</p>
+    </header>`
+		: '';
+	app.innerHTML = `${header}
     <div class="feeds${stale ? ' stale' : ''}">${feeds || '<p class="empty">Noch keine Werte.</p>'}</div>`;
 	wire();
 }
