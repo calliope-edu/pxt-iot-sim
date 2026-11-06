@@ -6,10 +6,10 @@
  * The IoT extension writes ordinary `IOT1:` lines, so the panel learns
  * everything it needs from the announcement the program makes at start:
  *
- *   IOT1:s:<server>    where the program wants to talk
- *   IOT1:h:<ref>       slug or token — WHICH dashboard
- *   IOT1:i:<serial>    who the device is
  *   IOT1:r:<scope>     whose values it wants to read
+ *   IOT1:i:<serial>    who the device is
+ *   IOT1:s:<server>    where the program wants to talk
+ *   IOT1:h:<ref>       slug or token — WHICH dashboard; always last
  *   IOT1:d:<to>:<feed>:<value>   a datapoint it would have sent — ignored
  *                                here, the panel only reads the dashboard
  *
@@ -41,6 +41,28 @@ export type SimxAnnouncement = {
 	 */
 	scope: string;
 };
+
+/**
+ * The human-readable half of a reference.
+ *
+ * A reference is `<slug>:R-…:W-…`, and the panel was showing all of it as its
+ * heading — forty characters of credential where a name belongs, wrapped over
+ * three lines. The slug is the part a person can match against the board in
+ * front of them; the tokens are plumbing and belong nowhere near a heading.
+ *
+ * Returns the whole string when there is no slug (a bare token), because
+ * something is better than an empty title and that case means the program
+ * never named a dashboard a human could recognise.
+ */
+export function refLabel(ref: string): string {
+	for (const part of ref.split(':')) {
+		const p = part.trim();
+		if (!p) continue;
+		if (/^[RW]-/i.test(p)) continue;
+		return p;
+	}
+	return ref.trim();
+}
 
 /*
  * No `onLine`. The panel used to keep the raw `IOT1:…` lines in a footer, where
@@ -152,20 +174,49 @@ export function sendFeedsToEditor(feeds: string[]): void {
 }
 
 /**
+ * How long a half-told announcement may wait for its `h:` line before it is
+ * passed on anyway. Only hexes that send `h:` before the other lines need it
+ * (see `listenToSimulator`); the lines of one hello come a few ms apart.
+ */
+const ANNOUNCEMENT_SETTLE_MS = 300;
+
+/**
  * Listen for the simulator's IoT lines.
  *
  * The announcement is accumulated rather than replaced field by field: the
- * program sends `s:`, `h:`, `i:` and `r:` as separate lines a millisecond
+ * program sends `r:`, `i:`, `s:` and `h:` as separate lines a millisecond
  * apart, and a consumer that reacted to each one on its own would subscribe to
  * PocketBase with a server but no dashboard, then throw it away.
+ *
+ * And it is passed on ONCE, when it is complete, not after every line. A
+ * restarted program's `r:` (or `s:`) arrives while `ref` still holds the
+ * PREVIOUS program's dashboard; reported right then, it looked like "same
+ * dashboard, new program" and the panel re-sent the old dashboard's clock and
+ * values to a program that had named a different one — `wenn … empfangen`
+ * fired for a board it never asked for. The extension sends `h:` last (the
+ * reference may carry colons, so it ends the hello on its own line), so `h:`
+ * completes it. Hexes that sent `h:` first and `i:`/`r:` after it get their
+ * late lines passed on once they settle.
  */
 export function listenToSimulator(handlers: SimxHandlers): () => void {
 	const announcement: SimxAnnouncement = { ref: '', server: '', device: '', scope: 'dashboard' };
+	let settle: ReturnType<typeof setTimeout> | undefined;
+
+	const report = () => {
+		clearTimeout(settle);
+		settle = undefined;
+		if (announcement.ref) handlers.onAnnouncement?.({ ...announcement });
+	};
 
 	const onMessage = (event: MessageEvent) => {
 		const msg = event.data as { type?: unknown; channel?: unknown; data?: unknown } | null;
 		if (!msg || typeof msg !== 'object') return;
 		if (msg.type !== 'messagepacket' || msg.channel !== IOT_CHANNEL) return;
+
+		// Per packet, not per line: a packet carrying the whole hello is
+		// reported once, after all of its lines.
+		let complete = false;
+		let partial = false;
 
 		for (const raw of toText(msg.data).split('\n')) {
 			const line = raw.replace(/\r$/, '').trim();
@@ -177,13 +228,13 @@ export function listenToSimulator(handlers: SimxHandlers): () => void {
 
 			if (kind === 'h') {
 				announcement.ref = rest.trim();
-				handlers.onAnnouncement?.({ ...announcement });
+				complete = true;
 			} else if (kind === 's') {
 				announcement.server = rest.trim();
-				if (announcement.ref) handlers.onAnnouncement?.({ ...announcement });
+				partial = true;
 			} else if (kind === 'i') {
 				announcement.device = rest.trim();
-				if (announcement.ref) handlers.onAnnouncement?.({ ...announcement });
+				partial = true;
 			} else if (kind === 'r') {
 				// One letter on the wire, because it has to fit a 20-byte serial
 				// buffer on the real device. Spelled out here, because that is
@@ -195,11 +246,20 @@ export function listenToSimulator(handlers: SimxHandlers): () => void {
 						: code === 'g' || code === 'devices'
 							? 'devices'
 							: 'dashboard';
-				if (announcement.ref) handlers.onAnnouncement?.({ ...announcement });
+				partial = true;
 			}
+		}
+
+		if (complete) report();
+		else if (partial) {
+			clearTimeout(settle);
+			settle = setTimeout(report, ANNOUNCEMENT_SETTLE_MS);
 		}
 	};
 
 	window.addEventListener('message', onMessage);
-	return () => window.removeEventListener('message', onMessage);
+	return () => {
+		clearTimeout(settle);
+		window.removeEventListener('message', onMessage);
+	};
 }

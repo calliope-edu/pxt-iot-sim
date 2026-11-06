@@ -53,14 +53,21 @@ Simulator-Nachrichten als `messagepacket` an das simx-Panel weiter; die
 Extension sendet ihre Anmeldung als
 
 ```
+IOT1:r:<leseumfang>
+IOT1:i:<seriennummer>
 IOT1:s:<serveradresse>
 IOT1:h:<slug oder token>
-IOT1:i:<seriennummer>
-IOT1:r:<leseumfang>
 ```
 
-Das Panel hört auf `h:` (welches Dashboard) und `s:` (welcher Server) und
-abonniert dann PocketBase. Mehr braucht es nicht.
+Das Panel hört auf `h:` (welches Dashboard), `s:` (welcher Server) und `r:`
+(wessen Werte) und fragt dann den Server. Mehr braucht es nicht.
+
+Es reagiert erst, wenn die Anmeldung vollständig ist, also mit der `h:`-Zeile,
+die immer als letzte kommt. Vorher stünde noch das Dashboard des VORIGEN
+Programms im Panel: Ein neu gestartetes Programm, das ein anderes Dashboard
+nennt, bekäme sonst für einen Moment die alten Werte geschickt. Nennt das
+Programm nach dem Neustart dasselbe Dashboard, schickt das Panel ihm Uhrzeit und
+aktuelle Werte noch einmal, wie der Campus es beim Gerät tut.
 
 Der Schalter „im Simulator senden" ist weg — er entfällt ersatzlos, weil der
 Grund für ihn weg ist. Er stand im Übertragungsblock, weil pxt die Ausgaben des
@@ -94,9 +101,9 @@ beim Schlüssel der EXTENSION, nicht bei dem des Panels. pxt schlägt den simx
 Extension (`iotsim.panelKey()` in `pxt-calliope-iot`):
 
 ```json
-"amerlander/pxt-calliope-iot": {
+"calliope-edu/pxt-calliope-iot": {
     "simx": {
-        "repo": "amerlander/pxt-iot-sim",
+        "repo": "calliope-edu/pxt-iot-sim",
         "sha": "<commit-sha auf gh-pages>",
         "devUrl": "http://localhost:3400",
         "aspectRatio": 0.78
@@ -122,7 +129,7 @@ selbst auf localhost liegt). Für den Produktivbetrieb zählt der `sha`.
 
 Das gehostete MakeCode (makecode.calliope.cc) lädt ein Panel **nie** von einer
 fremden Adresse. Außerhalb von localhost mit `simxdev` berechnet pxt die URL
-selbst: `<sim-origin>/simx/amerlander/pxt-calliope-iot/-/index.html`. Den
+selbst: `<sim-origin>/simx/calliope-edu/pxt-calliope-iot/-/index.html`. Den
 Inhalt dahinter holt das MakeCode-Backend aus dem `gh-pages`-Zweig von `repo`,
 und zwar genau den Commit aus `sha`. Eine eigene GitHub Page oder ein Hosting im
 Campus-Stack nimmt es nicht, auch kein Redirect dorthin: Der Simulator postet
@@ -139,7 +146,7 @@ Also:
    eintragen.
 3. Das Target neu ausrollen. Erst danach sieht makecode.calliope.cc das Panel.
 
-Nebenbei liegt derselbe Stand unter https://amerlander.github.io/pxt-iot-sim/:
+Nebenbei liegt derselbe Stand unter https://calliope-edu.github.io/pxt-iot-sim/:
 zum Anschauen, und als `devUrl`, wenn man lokal ohne `npm run dev` testen will.
 
 ## Entwickeln
