@@ -22,7 +22,6 @@ import './style.css';
 import {
 	announceReady,
 	listenToSimulator,
-	refLabel,
 	sendFeedsToEditor,
 	sendToSimulator,
 	type SimxAnnouncement
@@ -151,7 +150,7 @@ function render(): void {
 
 	if (!view) {
 		painted = '';
-		app.innerHTML = `<section class="empty"><h1>Verbinde…</h1><p>${escape(refLabel(announcement.ref))}</p></section>`;
+		app.innerHTML = `<section class="empty"><h1>Verbinde…</h1></section>`;
 		return;
 	}
 
@@ -174,10 +173,10 @@ function render(): void {
 		.map(([feed, values]) => feedBlock(feed, values))
 		.join('');
 
+	// No heading. All the panel knows of the board is the reference out of the
+	// program — a slug or a token, never the name the board carries in campus —
+	// and a line of ID above the readings says nothing a child can use.
 	app.innerHTML = `
-    <header>
-      <h1 title="${escape(announcement.ref)}">${escape(refLabel(announcement.ref))}</h1>
-    </header>
     <div class="feeds">${feeds || '<p class="empty">Noch keine Werte.</p>'}</div>`;
 	wire();
 }

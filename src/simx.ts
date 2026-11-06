@@ -42,28 +42,6 @@ export type SimxAnnouncement = {
 	scope: string;
 };
 
-/**
- * The human-readable half of a reference.
- *
- * A reference is `<slug>:R-…:W-…`, and the panel was showing all of it as its
- * heading — forty characters of credential where a name belongs, wrapped over
- * three lines. The slug is the part a person can match against the board in
- * front of them; the tokens are plumbing and belong nowhere near a heading.
- *
- * Returns the whole string when there is no slug (a bare token), because
- * something is better than an empty title and that case means the program
- * never named a dashboard a human could recognise.
- */
-export function refLabel(ref: string): string {
-	for (const part of ref.split(':')) {
-		const p = part.trim();
-		if (!p) continue;
-		if (/^[RW]-/i.test(p)) continue;
-		return p;
-	}
-	return ref.trim();
-}
-
 /*
  * No `onLine`. The panel used to keep the raw `IOT1:…` lines in a footer, where
  * they cost a fifth of its height to repeat, in protocol, what the readings

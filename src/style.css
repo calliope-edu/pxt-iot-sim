@@ -66,32 +66,13 @@ body {
   min-height: 0;
 }
 
-/* ── Kopf ─────────────────────────────────────────────────────────────── */
-
-header {
-  flex: none;
-  padding: 0.625rem 0.75rem 0.5rem;
-}
-
-header h1 {
-  margin: 0;
-  /* Capped hard. This is a dashboard slug, and a slug can be twelve random
-     letters — at heading size it took three lines and pushed the data off
-     screen. It is a label, so it is sized like one. */
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--ink-soft);
-  overflow-wrap: anywhere;
-}
-
 /* ── Die Werte ────────────────────────────────────────────────────────── */
 
 .feeds {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 0.125rem 0 0.75rem;
+  padding: 0.5rem 0 0.75rem;
 }
 
 .feed {
