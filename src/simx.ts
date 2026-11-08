@@ -209,6 +209,10 @@ export function listenToSimulator(handlers: SimxHandlers): () => void {
 	};
 
 	const onMessage = (event: MessageEvent) => {
+		// Only the editor speaks for the simulator. The Campus page the panel
+		// embeds posts into this same window, and nothing it says may pass for
+		// a line of the program.
+		if (event.source !== window.parent) return;
 		const msg = event.data as { type?: unknown; channel?: unknown; data?: unknown } | null;
 		if (!msg || typeof msg !== 'object') return;
 		if (msg.type !== 'messagepacket' || msg.channel !== IOT_CHANNEL) return;

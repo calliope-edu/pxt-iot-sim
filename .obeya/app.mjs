@@ -194,6 +194,9 @@ function serveFake(port, panelUrl) {
  * extension does. Beside it, what the panel sends back: the `IOT1:` lines for
  * the simulated mini and the feed names for the editor's suggestions.
  * `?scope=d|g|a` picks whose values the "program" reads (default a).
+ * `?campus=<origin>` names the Campus whose /embed/iot-sim page draws the
+ * panel (a Campus workspace runs on its own port); with nothing answering
+ * there, the panel shows its built-in list after three seconds.
  *
  * Two switches under it for the panel's failure states: the dashboard taken off
  * the network, and a program that names a dashboard the server does not know
@@ -211,7 +214,7 @@ function harness(panelUrl, server) {
   p { color: #555; max-width: 380px; }
   .controls { margin-top: 12px; display: grid; gap: 6px; color: #333; }
 </style></head><body>
-<div class="sim"><h2>Simulator-Panel</h2><iframe id="panel" src="${panelUrl}#obeya-harness"></iframe>
+<div class="sim"><h2>Simulator-Panel</h2><iframe id="panel"></iframe>
 <div class="controls">
   <label><input type="checkbox" id="online" checked autocomplete="off"> Dashboard erreichbar</label>
   <label>Programm nennt <select id="board" autocomplete="off">
@@ -222,8 +225,12 @@ function harness(panelUrl, server) {
 <div><h2>Vom Panel an den Simulator</h2><pre id="log"></pre>
 <p id="feeds">Feed-Vorschläge an den Editor: –</p></div>
 <script>
-  const scope = new URLSearchParams(location.search).get('scope') || 'a';
+  const params = new URLSearchParams(location.search);
+  const scope = params.get('scope') || 'a';
   const frame = document.getElementById('panel');
+  // Handed on as the panel's dev override (see devPage in src/campus.ts).
+  const campus = params.get('campus');
+  frame.src = '${panelUrl}' + (campus ? '?campus=' + encodeURIComponent(campus) : '') + '#obeya-harness';
   const log = document.getElementById('log');
   const board = document.getElementById('board');
   // In the extension's order (iotcampus.hello) and a packet per line, as
