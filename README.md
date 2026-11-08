@@ -4,6 +4,80 @@ Eine **Simulator-Extension** (simx) für MakeCode: ein Panel neben dem Simulator
 das die Feeds des verknüpften IoT-Dashboards live zeigt. Damit sieht ein Kind
 beim Programmieren, was auf dem Dashboard gerade steht — ohne Gerät am Kabel.
 
+## The look comes from Campus
+
+This repository is pinned by sha in `pxt-calliope/targetconfig.json`, so every
+change here costs a gh-pages commit, a sha bump and a target redeploy. It
+therefore keeps only the **communication**: the `ready` handshake (`simx.ts`),
+the program's `IOT1:` announcement, the poll of `GET <server>/read`
+(`dashboard.ts`), the `IOT1:t/z/v` lines into the simulator, the feed names for
+the editor and the state the picture is drawn from (`main.ts`).
+
+The **picture** is a Campus page, `<campus>/embed/iot-sim`, in a nested iframe
+(`campus.ts`). It ships with every Campus release (route
+`src/routes/(embed)/embed/iot-sim` in calliope-campus, with the same contract in
+its README).
+
+- **Which Campus.** The shell asks the program's server: `GET <server>/sim`
+  answers `{ "page": "<url>" }` (only https, or http on localhost, is taken).
+  The API lives on its own host (`campus-api.…`), so its origin is not the
+  Campus origin; the server knows which Campus it belongs to (its Application
+  URL). Without an answer: `https://campus.calliope.cc/embed/iot-sim`. With the
+  panel served from localhost (`simxdev`): always the local Campus,
+  `?campus=<origin>` on the panel URL, else `VITE_CAMPUS_ORIGIN`, else
+  `https://localhost:5173`.
+- **Fallback.** If the page has not reported ready within 3 s (Campus
+  unreachable, offline), the shell draws a bare list of its own (`fallback.ts`):
+  the four states, name and current value per feed, no table, no font. If the
+  page reports ready later, it takes over. A page that drew before keeps drawing
+  while the next one loads.
+- **Origins.** The shell accepts `iot-sim-ready` only from the frame it created,
+  from the origin it loaded it from, and posts the state to that origin only.
+  Only the editor (`window.parent`) is heard as the simulator; nothing the page
+  sends reaches the simulator.
+
+### Contract
+
+**Rule: Campus may only extend it, never break it.** Old shells stay pinned in
+old target versions. This shell must never stop sending a field or change what
+one means; the page ignores unknown fields and draws a `v` it does not know as
+well as the known fields allow.
+
+Page → shell, once it listens (and again after every reload; the shell answers
+with the current state each time):
+
+```js
+{ type: 'iot-sim-ready', v: 1 }
+```
+
+Shell → page, on every change, with the page's origin as target:
+
+```js
+{
+  type: 'iot-sim-view',
+  v: 1,
+  state: 'none' | 'connecting' | 'cut-off' | 'live',
+  view: null | { feeds, values: [{ feed, from_dev, to_dev, num, str, ts }], clock, zone },
+  changedAt: { [`${feed} ${from_dev || '0'} ${to_dev || ''}`]: msSinceEpoch },
+  answeredAt: msSinceEpoch,          // 0 = never
+  failure: null | 'address' | 'refused' | 'unreachable',
+  ref: string,                       // without the write token; see below
+  server: string,                    // as the program names it (IOT1:s:)
+  scope: 'dashboard' | 'devices' | 'all'
+}
+```
+
+- `state`: `none` no program named a dashboard; `connecting` no answer yet;
+  `cut-off` three failed polls in a row (`view` keeps the last answer,
+  `answeredAt` says from when); `live` the last poll answered.
+- `view.values` come newest first, so a feed's first row is its current value.
+  `num` is null for text. `ts` is the fetch time, not a server time.
+- `changedAt` has no entry for a reading that was already there when the shell
+  connected.
+- `ref` is slug plus read token when the page is the one the program's server
+  names (or the local Campus in dev), only the slug otherwise. The write token
+  never leaves the shell.
+
 ## Was zu sehen ist
 
 Je Feed **eine Zeile**: links der Name, rechts der aktuelle Wert, groß. Das ist

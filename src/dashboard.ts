@@ -1,5 +1,6 @@
 /**
- * Reading a dashboard straight from PocketBase.
+ * Reading a dashboard straight from PocketBase, and asking it which Campus page
+ * draws the panel (`simPage`).
  *
  * Deliberately no PocketBase SDK: the panel needs three GETs and one realtime
  * stream, and the SDK would be the largest thing in a bundle that has to load
@@ -132,6 +133,32 @@ export async function readValues(
 		});
 	}
 	return { feeds: [...feeds.values()], values, clock, zone };
+}
+
+/**
+ * Where the program's own server draws this panel: the Campus page that goes
+ * with that PocketBase, as `GET <api>/sim` names it (`{ page }`), or '' when
+ * the server names none — an older Campus, or somebody else's server.
+ *
+ * Asked rather than derived: the API lives on its own host (`campus-api.…`),
+ * not on the Campus origin, and only the server knows which Campus it belongs
+ * to. Only https pages, or http on localhost, come back: the answer becomes an
+ * iframe `src` in the sim origin, and a `javascript:` URL there would be the
+ * server running script in MakeCode.
+ */
+export async function simPage(server: string): Promise<string> {
+	const api = base(server);
+	if (!api) return '';
+	try {
+		const res = await fetch(`${api}/sim`, { signal: AbortSignal.timeout(READ_TIMEOUT_MS) });
+		if (!res.ok) return '';
+		const url = new URL(String((await res.json())?.page ?? ''));
+		const local = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+		if (url.protocol !== 'https:' && !(local && url.protocol === 'http:')) return '';
+		return url.href;
+	} catch {
+		return '';
+	}
 }
 
 /**
